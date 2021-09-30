@@ -1,74 +1,27 @@
-# task-01
+# lofi-defense-system
 
-For this task we are going to develop a basic (if unrealistic) automated defense system.
+This was an assignment I came up near the end of last year's class. Calling this lofi is still an overstatement of the fidelity of this model. It is really simple and hardly models anything - but it is enough to be interesting and can be configured in a few ways.
 
-### Clamshell Users
+Just to get started, this should be buildable and runnable on `clamshell`. Once you SSH and clone the repo, you will need to pull the dependencies. I added a shell script to do this. It will clone a few repos to your home area. All in all, you can build and run everything with the following:
 
-Before starting this task, run the following command in the task folder.
-
-```shell
+```
+git clone git@github.com:Lnk2past/lofi-defense-system.git
+cd lofi-defense-system
+./get_deps.sh
 make clamshell
-```
-
-This will update and move the `malen`, `malen-bokeh`, `nlohmann`, and `fmt` libraries into place.
-
-## Task
-
-Follow along in class! We want to implement the following:
-
-* Utilities and helpers
-* Basic environment model to use in aerodynamic drag calculations
-* Basic radar model using an **Alpha-Beta-Gamma Filter**
-* Basic weapon model
-
-With the starter code and newly implemented pieces for the above, we can create a simple automated defense system simulation. When it is all said and done, we should have something like this: http://crab.rutgers.edu/~nesan/defense.html. An object is launched with an extremely high speed; after traveling a few kilometers it enters within range of a radar system, which starts to track the object. The object then enters within range of a weapon system which uses readings from the radar to engare the object with its own high-speed projectiles. It launches a defensive projectile every 0.5 seconds until the object lands or is intercepted.
-
-## Building
-
-Trying building your program with:
-
-```shell
 make
-```
-
-## Running
-
-Try running the program with:
-
-```shell
 ./main.exe data/configuration.json
-```
-
-Try tweaking some of the values in `data/configuration.json`, our simple model can be tuned to perform better or worse!
-
-### Turtleshell Users
-
-If you cloned the repository in the correct location, you should be able to navigate to the assignment directory on your PC (not in VS Code/Docker). In the task-01 directory will be a file named `defense.html` that you can open in your web browser.
-
-e.g. on my Windows PC that path is:
-
-```text
-C:\Users\Lnk2past\turtleshell\assignment-07-Lnk2past\task-01\defense.html
-```
-
-### Clamshell Users
-
-Run the command:
-
-```shell
 make move-plot
 ```
 
-Then in your web browser go to the website, replacing `NETID` with your own Rutgers NetID:
+This will result in a an HTML file named "defense.html" in your current directory as well as copied to your FTP server at `clam.rutgers.edu/~NETID`.
 
-```
-http://clam.rutgers.edu/~NETID/defense.html
-```
+## Breakdown
 
-## Testing
+The code consists of ultra basic models for projectiles, a radar, a weapon system, and an environment. The projectile just implements basic kinematics. The environment model is used to simply apply drag.
 
-Try testing the program with:
+The radar model implements an alpha-beta-gamma filter. The projectile is passed to the radar, which then has a noise applied to it based on its distance from the radar. If the radar is not already tracking, then if checks if the projectile is in range - if it is in rang e then the initial track is populated. The track object is then used in subsequent updates along with the signal (raw  + noise) to update the filter.
 
-```shell
-make test
-```
+The weapon system is set up to have a "cooldown" so that it needs to pause between shots on the threat. If the weapon system is available it will check if the projectile is in range - if it is then it just applies dead-reckoning to the projectile (using the radar's filtered value) to attempt to figure out where to fire its salvo. Salvo's are stored in a vector which are updated separately. If a salvo comes within a certain radius of the threat then a kill is marked and the sim ends - salvos also have a fuse timer aften which when they expire they are removed from the sim.
+
+That is it in a nutshell, im sure there are some details I missed.The code is designed to run from a JSON config - check out the default config to see what you can tweak.
